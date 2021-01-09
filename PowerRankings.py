@@ -1,26 +1,26 @@
 import requests
 
-league_id = 81628126
-year = 2020
+league_id = 1946371300
+year = 2021
 url = "https://fantasy.espn.com/apis/v3/games/fba/seasons/" + \
       str(year) + "/segments/0/leagues/" + str(league_id)
 
 response = requests.get(url, params={"view": "mMatchup"})
 print(response.status_code)
 data = response.json()
-current_week = 0
+current_week = 2.0
 max_strength = 0
 min_strength = 0
 max_t_score = 0
-avg_wins = 2 # every week must average 2 wins and 2 losses
-num_of_weeks = 4.0 # number of weeks to look back at for rankings
+num_of_weeks = 2.0 # number of weeks to look back at for rankings
 
-# points difference, wins, calculated strength, and t score in last 4 matchups
+# points difference, wins, calculated strength, and t-score in last 4 matchups
+# ORDER OF TEAMS MATTERS!!!!! it is same as order in "league members" tab
 team_strength = [
-    ["Tyler", 0, 0, 0, 0], ["Jimmy", 0, 0, 0, 0], ["Clifford", 0, 0, 0, 0],
-    ["Holden", 0, 0, 0, 0], ["Nick", 0, 0, 0, 0], ["Linus", 0, 0, 0, 0],
-    ["Simon", 0, 0, 0, 0], ["Torrien", 0, 0, 0, 0], ["Lucas", 0, 0, 0, 0],
-    ["Daniel", 0, 0, 0, 0], ["Zack", 0, 0, 0, 0], ["Henry", 0, 0, 0, 0]
+    ["Tyler", 0, 0, 0, 0], ["Henry", 0, 0, 0, 0], ["Ib", 0, 0, 0, 0],
+    ["Zack", 0, 0, 0, 0], ["Holden", 0, 0, 0, 0], ["Lucas", 0, 0, 0, 0],
+    ["Connor", 0, 0, 0, 0], ["Daniel", 0, 0, 0, 0], ["Jimmy", 0, 0, 0, 0],
+    ["Torrien", 0, 0, 0, 0], ["Nick", 0, 0, 0, 0], ["Linus", 0, 0, 0, 0]
 ]
 
 # t score is the adjusted score for strength of schedule/quality of wins
@@ -33,14 +33,16 @@ matchup_df = [[
     game['away']['teamId'], game['away']['totalPoints']
 ] for game in data['schedule']]
 
-# find current week
-for matchup in matchup_df:
-    if int(matchup[2]) != 0: # if matchup has happened
-        current_week = int(matchup[0])
+# find current week. this only works on monday before any games have been played. don't know where
+# in ESPN's api to find wins/losses which would be better method
+#for matchup in matchup_df:
+#    if int(matchup[2]) != 0: # if matchup has happened
+#        current_week = int(matchup[0])
 
-# calculate total point differential over last 4 weeks
+# calculate total point differential over last x weeks
 for matchup in matchup_df:
-    if matchup[0] > current_week - num_of_weeks:
+    if matchup[0] <= current_week and matchup[0] > current_week - num_of_weeks:
+        print(matchup)
         team_strength[matchup[1] - 1][1] += matchup[2] - matchup[4]
         if matchup[2] > matchup[4]:
             team_strength[matchup[1] - 1][2] += 1
@@ -139,6 +141,6 @@ print("")
 print("Week " + str(int(current_week) + 1) + " Power Rankings: ")
 for i in range(len(team_strength)):
     print(str(i + 1) + ". " + team_strength[i][0] + ": " +
-          str(team_strength[i][4]))
+          str(round(team_strength[i][4], 3)))
 
 print("")
