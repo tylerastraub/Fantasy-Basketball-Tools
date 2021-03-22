@@ -8,11 +8,11 @@ url = "https://fantasy.espn.com/apis/v3/games/fba/seasons/" + \
 response = requests.get(url, params={"view": "mMatchup"})
 print(response.status_code)
 data = response.json()
-current_week = 2.0
+current_week = 0
 max_strength = 0
 min_strength = 0
 max_t_score = 0
-num_of_weeks = 2.0 # number of weeks to look back at for rankings
+num_of_weeks = 4.0 # number of weeks to look back at for rankings
 
 # points difference, wins, calculated strength, and t-score in last 4 matchups
 # ORDER OF TEAMS MATTERS!!!!! it is same as order in "league members" tab
@@ -35,9 +35,9 @@ matchup_df = [[
 
 # find current week. this only works on monday before any games have been played. don't know where
 # in ESPN's api to find wins/losses which would be better method
-#for matchup in matchup_df:
-#    if int(matchup[2]) != 0: # if matchup has happened
-#        current_week = int(matchup[0])
+for matchup in matchup_df:
+    if int(matchup[2]) != 0: # if matchup has happened
+        current_week = int(matchup[0])
 
 # calculate total point differential over last x weeks
 for matchup in matchup_df:
@@ -138,9 +138,9 @@ for i in range(len(team_strength)):
 print("")
 
 # final rankings
-print("Week " + str(int(current_week) + 1) + " Power Rankings: ")
+print(" Week " + str(int(current_week) + 1) + " Power Rankings: ")
 for i in range(len(team_strength)):
-    print(str(i + 1) + ". " + team_strength[i][0] + ": " +
+    print(" " + str(i + 1) + ". " + team_strength[i][0] + ": " +
           str(round(team_strength[i][4], 3)))
 
 print("")
