@@ -16,9 +16,7 @@ class LeagueTeam:
         self.losses = 0
         self.ties = 0
         self.record = ""
-        self.catsWon = 0
-        self.catsLost = 0
-        self.catsTied = 0
+        self.catsScore = 0
 
 def generateCategoriesRankings():
     leagueTeams = {}
@@ -40,11 +38,9 @@ def generateCategoriesRankings():
                 for cat in home_team.categories:
                     home_team.categories[cat] += box_score.home_stats[cat]["value"]
                     if box_score.home_stats[cat]["result"] == "WIN":
-                        home_team.catsWon += 1
+                        home_team.catsScore += 1
                     elif box_score.home_stats[cat]["result"] == "LOSS":
-                        home_team.catsLost += 1
-                    elif box_score.home_stats[cat]["result"] == "TIE":
-                        home_team.catsTied += 1
+                        home_team.catsScore -= 1
             else:
                 print("Error: key not found! " + box_score.home_team.team_name)
             if box_score.away_team.team_name in leagueTeams:
@@ -52,11 +48,9 @@ def generateCategoriesRankings():
                 for cat in away_team.categories:
                     away_team.categories[cat] += box_score.away_stats[cat]["value"]
                     if box_score.away_stats[cat]["result"] == "WIN":
-                        away_team.catsWon += 1
+                        away_team.catsScore += 1
                     elif box_score.away_stats[cat]["result"] == "LOSS":
-                        away_team.catsLost += 1
-                    elif box_score.away_stats[cat]["result"] == "TIE":
-                        away_team.catsTied += 1
+                        away_team.catsScore -= 1
             else:
                 print("Error: key not found! " + box_score.away_team.team_name)
 
@@ -108,45 +102,17 @@ def generateCategoriesRankings():
     print()
 
     # now that we have the "objective" team rankings, we can use wins/losses to adjust these ranks
-    # below is old rank mods that adjusted based on strength of teams beat/lost to
-    # startWeek = 1
-    # if current_week - num_of_weeks > 1:
-    #     startWeek = current_week - num_of_weeks
-
-    # rankMods = {}
-    # rankRange = rankedDf["T-Score"].max() - rankedDf["T-Score"].min()
-    # for team in rankedDf.loc[:, "Team Name"]:
-    #     rankMods[team] = 0
-    # for i in range(num_of_weeks):
-    #     matchups = league.scoreboard(startWeek + i)
-    #     for matchup in matchups:
-    #         if(matchup.winner == "HOME"):
-    #             winner = matchup.home_team.team_name
-    #             loser = matchup.away_team.team_name
-    #         else:
-    #             winner = matchup.away_team.team_name
-    #             loser = matchup.home_team.team_name
-    #         winnerRank = getTeamRank(winner, rankedDf)
-    #         loserRank = getTeamRank(loser, rankedDf)
-    #         rankDiff = winnerRank - loserRank
-    #         if rankDiff + rankRange != 0:
-    #             rankMods[winner] += (rankDiff + rankRange) / (rankRange * 2)
-    #             rankMods[loser] -= (rankDiff + rankRange) / (rankRange * 2)
-    
-    # rankModifier = 6.0 # how much wins/losses should sway rank. if the worst team beats the best team, their rank improves by this much
-    # for index, row in rankedDf.iterrows():
-    #     oldRank = row["T-Score"]
-    #     rankedDf.at[index, "T-Score"] -= rankMods[row["Team Name"]] * rankModifier
-    #     print("Old rank for " + row["Team Name"] + ": " + str(oldRank) + ", new rank: " + str(rankedDf.at[index, "T-Score"]), ", rank modifier: " + str(rankMods[row["Team Name"]]))
-    winModifier = 2
+    winModifier = 4
     catsModifier = 1 / num_of_weeks
     for index, row in rankedDf.iterrows():
-        rankedDf.at[index, "T-Score"] -= leagueTeams[row["Team Name"]].wins * winModifier
-        rankedDf.at[index, "T-Score"] -= round(leagueTeams[row["Team Name"]].catsWon * catsModifier)
+        team = leagueTeams[row["Team Name"]]
+        winPercent = (team.wins + team.ties * 0.5) / (current_week - 1)
+        rankedDf.at[index, "T-Score"] -= winPercent * winModifier
+        rankedDf.at[index, "T-Score"] -= team.catsScore * catsModifier
 
     rankedDf = rankedDf.sort_values(by=["T-Score"], ascending=True)
     rankedDf.index = np.arange(1, len(df) + 1)
-    # rankedDf["T-Score"] = rankedDf["T-Score"].astype(str).apply(Decimal)
+    rankedDf["T-Score"] = rankedDf["T-Score"].apply(int)
     
     print("\nWeek " + str(current_week) + " Power Rankings\n")
     print(rankedDf[["Team Name", "Division", "Record", "T-Score"]])
@@ -164,7 +130,7 @@ def generateCategoriesRankings():
                                    ('padding', '2px')]),
         dict(selector='caption', props=[('font-size', '18pt'),
                                         ('font-family', 'Calibri'),
-                                        ('margin', '10px'),
+                                        ('padding', '5px'),
                                         ('font-weight', 'bold')])
     ]
     output = open("power_rankings.html", "w")
