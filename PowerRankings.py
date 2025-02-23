@@ -4,8 +4,8 @@ import numpy as np
 from matplotlib import colormaps
 
 league = League(league_id=1946371300, year=2025)
-current_week = 3
-num_of_weeks = 2
+current_week = 18
+num_of_weeks = 4
 
 class LeagueTeam:
     def __init__(self):
@@ -69,6 +69,7 @@ def generateCategoriesRankings():
 
     # dataframe sorting
     df = pd.DataFrame(data, columns=["Team Name", "Division", "Record", "PTS", "REB", "AST", "STL", "BLK", "3PM", "FG%", "FT%", "TO"])
+    print(df)
     rankedData = []
     for team in leagueTeams:
         teamRanks = [team]
