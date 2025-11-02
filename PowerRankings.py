@@ -3,9 +3,14 @@ import pandas as pd
 import numpy as np
 from matplotlib import colormaps
 
-league = League(league_id=1946371300, year=2025)
-current_week = 18
-num_of_weeks = 4
+league = League(
+    league_id=1946371300,
+    year=2026,
+    espn_s2="AECayt4Qg%2BRCoXInyq7irX9MxqXOO%2BODE1TxcHRuS5NljQEAsniICI9srzszGNz75LzGeVEDcE3scj8hzjQr%2B6I73%2FDHcQnEGSv%2B3i3rDLBGvr2NRXhAJJB2CG1TexhTUHxeg4kMdVtizPc098F745xISuqYN5KA5%2BTL8S4g7RmX%2FaaKLnSb8YW26FZLGBubFYzUdJFtRi%2B2otMjaw%2B%2BKXoP%2FB1ABFFMlYh6zqC1LM7%2FC4BaK2YuwguWXc%2BrJNBuYJqrl%2BFLKJngnPyIDZlg2aQEwZpClwYcYPlY89n2MKsALg%3D%3D",
+    swid="{AC8B5DD1-C7F1-4F11-B04A-9B777F315528}"
+)
+current_week = 3
+num_of_weeks = 2
 
 class LeagueTeam:
     def __init__(self):
@@ -33,26 +38,28 @@ def generateCategoriesRankings():
     for week in range(current_week - num_of_weeks, current_week):
         box_scores = league.box_scores(week, 0, True)
         for box_score in box_scores:
-            if box_score.home_team.team_name in leagueTeams:
-                home_team = leagueTeams[box_score.home_team.team_name]
-                for cat in home_team.categories:
-                    home_team.categories[cat] += box_score.home_stats[cat]["value"]
-                    if box_score.home_stats[cat]["result"] == "WIN":
-                        home_team.catsScore += 1
-                    elif box_score.home_stats[cat]["result"] == "LOSS":
-                        home_team.catsScore -= 1
-            else:
-                print("Error: key not found! " + box_score.home_team.team_name)
-            if box_score.away_team.team_name in leagueTeams:
-                away_team = leagueTeams[box_score.away_team.team_name]
-                for cat in away_team.categories:
-                    away_team.categories[cat] += box_score.away_stats[cat]["value"]
-                    if box_score.away_stats[cat]["result"] == "WIN":
-                        away_team.catsScore += 1
-                    elif box_score.away_stats[cat]["result"] == "LOSS":
-                        away_team.catsScore -= 1
-            else:
-                print("Error: key not found! " + box_score.away_team.team_name)
+            if box_score.home_team:
+                if box_score.home_team.team_name in leagueTeams:
+                    home_team = leagueTeams[box_score.home_team.team_name]
+                    for cat in home_team.categories:
+                        home_team.categories[cat] += box_score.home_stats[cat]["value"]
+                        if box_score.home_stats[cat]["result"] == "WIN":
+                            home_team.catsScore += 1
+                        elif box_score.home_stats[cat]["result"] == "LOSS":
+                            home_team.catsScore -= 1
+                else:
+                    print("Error: key not found! " + box_score.home_team.team_name)
+            if box_score.away_team:
+                if box_score.away_team.team_name in leagueTeams:
+                    away_team = leagueTeams[box_score.away_team.team_name]
+                    for cat in away_team.categories:
+                        away_team.categories[cat] += box_score.away_stats[cat]["value"]
+                        if box_score.away_stats[cat]["result"] == "WIN":
+                            away_team.catsScore += 1
+                        elif box_score.away_stats[cat]["result"] == "LOSS":
+                            away_team.catsScore -= 1
+                else:
+                    print("Error: key not found! " + box_score.away_team.team_name)
 
     # fix FG% and FT% to be more readable, then add data to dataframe
     data = []
